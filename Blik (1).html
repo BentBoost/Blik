@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Blik</title>
+<style>
+:root{--bg:#f5f3ff;--surface:#fff;--ink:#1c1b3a;--mute:#6b6a8a;--line:#e4e1f7;--brand:#3b2fff;--hot:#ff5a4e;--on:#fff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12112a;--surface:#1c1b3a;--ink:#f1f0ff;--mute:#9d9bc4;--line:#2d2b55;--brand:#7a70ff}}
+:root[data-theme="dark"]{--bg:#12112a;--surface:#1c1b3a;--ink:#f1f0ff;--mute:#9d9bc4;--line:#2d2b55;--brand:#7a70ff}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%;background:var(--bg);color:var(--ink);font-family:"Nunito","Trebuchet MS",system-ui,sans-serif;overflow:hidden}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid var(--hot);outline-offset:2px}
+#app{max-width:460px;height:100%;margin:0 auto;display:flex;flex-direction:column;position:relative;background:var(--bg)}
+.view{flex:1;display:none;overflow-y:auto;position:relative}.view.on{display:block}
+h1{font-size:1.9rem;font-weight:900;letter-spacing:-.03em;padding:18px 20px 10px}
+nav{display:flex;border-top:1px solid var(--line);background:var(--surface)}
+nav button{flex:1;padding:12px 0 10px;font-weight:800;font-size:.8rem;color:var(--mute);display:grid;gap:2px;justify-items:center}
+nav button b{font-size:1.4rem;line-height:1}nav button.on{color:var(--brand)}
+.row{display:flex;align-items:center;gap:14px;width:100%;padding:12px 20px;text-align:left}
+.row:hover{background:var(--surface)}
+.av{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;font-size:1.7rem;flex:none}
+.row .t{flex:1;min-width:0}.row .t strong{display:block}.row .t span{color:var(--mute);font-size:.88rem}
+.new{color:var(--hot)!important;font-weight:800}
+#v-cam{background:#0b0a22;overflow:hidden}
+#vid,#fallback{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+#fallback{display:grid;place-items:center;text-align:center;padding:30px;color:#cfcdf5;background:linear-gradient(160deg,#3b2fff,#a02bff 60%,#ff5a4e)}
+#shutter{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);width:78px;height:78px;border-radius:50%;border:6px solid #fff;background:rgba(255,255,255,.25)}
+#shutter:active{transform:translateX(-50%) scale(.92);background:#fff}
+#flip{position:absolute;top:16px;right:16px;color:#fff;background:rgba(0,0,0,.35);border-radius:20px;padding:8px 12px;font-weight:800}
+.ov{position:absolute;inset:0;background:var(--bg);z-index:5;display:none;flex-direction:column}.ov.on{display:flex}
+.ov.dark{background:#000;color:#fff}
+.top{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.top .back{font-size:1.5rem;padding:0 6px}
+#msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:8px}
+.b{max-width:78%;padding:10px 14px;border-radius:18px;line-height:1.35;overflow-wrap:anywhere}
+.b.me{align-self:flex-end;background:var(--brand);color:#fff;border-bottom-right-radius:4px}
+.b.them{align-self:flex-start;background:var(--surface);border:1px solid var(--line);border-bottom-left-radius:4px}
+.b.snap{font-weight:800;border-radius:12px}
+.b.snap.new{background:var(--hot);color:#fff;border:0}
+.b.snap.done{opacity:.6;font-weight:600}
+form{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--line)}
+input[type=text]{flex:1;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:22px;padding:12px 16px;font:inherit}
+.btn{background:var(--brand);color:#fff;font-weight:800;border-radius:22px;padding:12px 20px}
+.btn.hot{background:var(--hot)}
+#shot,#vimg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+#cap{position:absolute;left:0;right:0;top:44%;text-align:center;background:rgba(0,0,0,.55);color:#fff;font-size:1.2rem;font-weight:800;padding:10px;border:0;width:100%}
+#cap::placeholder{color:#ddd}
+.bar{position:absolute;left:12px;right:12px;top:calc(10px + env(safe-area-inset-top,0px));display:flex;gap:4px;z-index:2}
+.bar i{flex:1;height:4px;background:rgba(255,255,255,.35);border-radius:2px;overflow:hidden}
+.bar i u{display:block;height:100%;width:0;background:#fff}
+.sendpanel{position:absolute;left:0;right:0;bottom:0;padding:16px;background:linear-gradient(transparent,rgba(0,0,0,.85));display:grid;gap:10px}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{padding:8px 14px;border-radius:20px;border:2px solid #fff6;color:#fff;font-weight:800}
+.chip.on{background:#fff;color:#111;border-color:#fff}
+#toast{position:absolute;left:50%;top:70px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:20px;font-weight:800;z-index:9;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap}
+#toast.on{opacity:1}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app">
+ <div id="toast" role="status"></div>
+ <section class="view on" id="v-chats"><h1>Chats</h1><div id="notice" style="padding:4px 20px;color:var(--mute)">Verbinden…</div><div id="chatlist"></div></section>
+ <section class="view" id="v-cam">
+  <video id="vid" autoplay playsinline muted hidden></video>
+  <div id="fallback"><p><b style="font-size:1.4rem">Blik</b><br><br>Geen camerabeeld beschikbaar.<br>Tik toch op de knop: je krijgt een gekleurde snap die je kunt versturen.</p></div>
+  <button id="flip" hidden>Draai camera</button>
+  <button id="shutter" aria-label="Maak een snap"></button>
+ </section>
+ <section class="view" id="v-friends"><h1>Vrienden</h1><p style="padding:0 20px 8px;color:var(--mute)">Iedereen die Blik opent, verschijnt hier. Nodig vrienden uit via Delen bovenaan de pagina en geef ze rechten om mee te doen.</p><div id="friendlist"></div></section>
+ <nav>
+  <button data-v="chats" class="on"><b>💬</b>Chats</button>
+  <button data-v="cam"><b>📸</b>Camera</button>
+  <button data-v="friends"><b>👥</b>Vrienden</button>
+ </nav>
+
+ <div class="ov" id="thread">
+  <div class="top"><button class="back" id="tback" aria-label="Terug">‹</button><img class="av" id="tav" alt="" style="width:40px;height:40px"><strong id="tname"></strong></div>
+  <div id="msgs"></div>
+  <form id="tform"><input type="text" id="tin" placeholder="Stuur een bericht" autocomplete="off"><button class="btn">Stuur</button></form>
+ </div>
+
+ <div class="ov dark" id="editor">
+  <img id="shot" alt="Je snap">
+  <input type="text" id="cap" placeholder="Tik om tekst toe te voegen" maxlength="60">
+  <button id="ecancel" style="position:absolute;top:14px;left:14px;font-size:1.6rem;color:#fff;background:#0006;border-radius:50%;width:40px;height:40px" aria-label="Weggooien">✕</button>
+  <div class="sendpanel">
+   <div class="chips" id="durs" aria-label="Hoe lang zichtbaar"></div>
+   <div class="chips" id="tolist" aria-label="Verstuur naar"></div>
+   <button class="btn hot" id="send">Verstuur snap</button>
+  </div>
+ </div>
+
+ <div class="ov dark" id="viewer">
+  <div class="bar" id="vbar"></div>
+  <img id="vimg" alt="">
+  <div id="vcap" style="position:absolute;left:0;right:0;top:44%;text-align:center;background:rgba(0,0,0,.55);font-size:1.2rem;font-weight:800;padding:10px"></div>
+  <div style="position:absolute;bottom:20px;left:0;right:0;text-align:center;font-size:.85rem;opacity:.8">Tik om te sluiten</div>
+  <button id="vhit" style="position:absolute;inset:0;opacity:0" aria-label="Sluiten"></button>
+ </div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const esc=t=>{const d=document.createElement('div');d.textContent=t;return d.innerHTML};
+let db=null,me=null,user=null,people=[],prof={},items=[],cur=null,stream=null,facing='environment',pending=null,sel=new Set(),dur=5,timer=null,ready=false;
+const toast=t=>{const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),2200)};
+const nm=id=>(prof[id]&&prof[id].name)||'Vriend';
+const av=id=>`<img class="av" alt="" src="${prof[id]?prof[id].avatarUrl:''}">`;
+const art=()=>{const E=['🦊','🐙','🌵','🚲','🌈','🍕'],C=[['#ff9a8b','#ff5a4e'],['#6ee7f9','#3b2fff'],['#c9f27a','#2fb07a'],['#ffd36e','#ff7b3a']],c=C[Math.random()*4|0],k=document.createElement('canvas');k.width=270;k.height=480;const x=k.getContext('2d'),g=x.createLinearGradient(0,0,270,480);g.addColorStop(0,c[0]);g.addColorStop(1,c[1]);x.fillStyle=g;x.fillRect(0,0,270,480);x.font='150px serif';x.textAlign='center';x.fillText(E[Math.random()*6|0],135,270);return k.toDataURL('image/jpeg',.6)};
+const mine=(m,id)=>(m.from===me.id&&m.to===id)||(m.from===id&&m.to===me.id);
+
+function show(v){$$('.view').forEach(e=>e.classList.toggle('on',e.id==='v-'+v));$$('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));v==='cam'?startCam():stopCam()}
+$$('nav button').forEach(b=>b.onclick=()=>show(b.dataset.v));
+
+function render(){
+ if(!ready)return;
+ const fr=people.filter(i=>i!==me.id);
+ $('#notice').hidden=fr.length>0;if(!fr.length)$('#notice').textContent='Nog geen vrienden. Nodig iemand uit via Delen en geef die persoon rechten om mee te doen.';
+ $('#chatlist').innerHTML=fr.map(id=>{const m=items.filter(x=>mine(x,id)),l=m[m.length-1];let sub='Nog geen berichten';
+  if(l){if(l.type==='text')sub=(l.from===me.id?'Jij: ':'')+l.text;else if(l.from===id)sub=l.opened?'Snap geopend':'Nieuwe snap';else sub=l.opened?'Snap geopend':'Snap verzonden'}
+  const isNew=l&&l.type==='snap'&&l.from===id&&!l.opened;
+  return `<button class="row" data-id="${id}">${av(id)}<div class="t"><strong>${esc(nm(id))}</strong><span class="${isNew?'new':''}">${esc(sub)}</span></div></button>`}).join('');
+ $$('#chatlist .row').forEach(r=>r.onclick=()=>openThread(r.dataset.id));
+ $('#friendlist').innerHTML=fr.map(id=>`<button class="row" data-id="${id}">${av(id)}<div class="t"><strong>${esc(nm(id))}</strong><span>Tik om te chatten</span></div></button>`).join('');
+ $$('#friendlist .row').forEach(r=>r.onclick=()=>openThread(r.dataset.id));
+ if(cur&&$('#thread').classList.contains('on'))renderMsgs();
+}
+function openThread(id){cur=id;$('#tav').src=prof[id]?prof[id].avatarUrl:'';$('#tname').textContent=nm(id);$('#thread').classList.add('on');renderMsgs()}
+function renderMsgs(){const box=$('#msgs');box.innerHTML='';
+ items.filter(m=>mine(m,cur)).forEach(m=>{const d=document.createElement(m.type==='snap'?'button':'div');d.className='b '+(m.from===me.id?'me':'them');
+  if(m.type==='text')d.textContent=m.text;
+  else{d.classList.add('snap');if(m.from!==me.id){d.textContent=m.opened?'Snap geopend':'📸 Tik om te bekijken';d.classList.add(m.opened?'done':'new');if(!m.opened)d.onclick=()=>playSnap(m)}else{d.textContent=m.opened?'Snap geopend':'Snap verzonden';d.classList.add('done')}}
+  box.appendChild(d)});box.scrollTop=box.scrollHeight}
+$('#tback').onclick=()=>{$('#thread').classList.remove('on');cur=null;render()};
+async function put(o){if(!db){toast('Nog niet verbonden');return false}try{await db.collection('items').add({...o,from:me.id,ts:Date.now()});return true}catch(e){toast('Versturen mislukt: vraag de eigenaar om je rechten om mee te doen');return false}}
+$('#tform').onsubmit=async e=>{e.preventDefault();const t=$('#tin').value.trim();if(!t||!cur)return;$('#tin').value='';await put({type:'text',to:cur,text:t})};
+
+function playSnap(m){const v=$('#viewer');v.classList.add('on');$('#vbar').innerHTML='<i><u></u></i>';const u=$('#vbar u');
+ $('#vimg').src=m.img;$('#vcap').textContent=m.cap||'';$('#vcap').hidden=!m.cap;
+ u.style.transition='none';u.style.width='0';u.offsetWidth;u.style.transition=`width ${m.dur}s linear`;u.style.width='100%';
+ const end=()=>{clearTimeout(timer);v.classList.remove('on');$('#vimg').src='';db.collection('items').doc(m.id).update({opened:true,img:'',cap:''}).catch(()=>{})};
+ timer=setTimeout(end,m.dur*1000);$('#vhit').onclick=end}
+
+async function startCam(){if(stream)return;try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:facing},audio:false});$('#vid').srcObject=stream;$('#vid').hidden=false;$('#fallback').hidden=true;$('#flip').hidden=false}catch(e){$('#vid').hidden=true;$('#fallback').hidden=false;$('#flip').hidden=true}}
+function stopCam(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}}
+$('#flip').onclick=()=>{facing=facing==='user'?'environment':'user';stopCam();startCam()};
+$('#shutter').onclick=()=>{let src;const v=$('#vid');
+ if(!v.hidden&&v.videoWidth){const w=Math.min(360,v.videoWidth),c=document.createElement('canvas');c.width=w;c.height=Math.round(v.videoHeight*w/v.videoWidth);c.getContext('2d').drawImage(v,0,0,c.width,c.height);src=c.toDataURL('image/jpeg',.6)}
+ else src=art();
+ pending=src;$('#shot').src=src;$('#cap').value='';sel=new Set();dur=5;buildEditor();$('#editor').classList.add('on')};
+function buildEditor(){
+ $('#durs').innerHTML=[3,5,10].map(d=>`<button class="chip ${d===dur?'on':''}" data-d="${d}">${d} sec</button>`).join('');
+ $$('#durs .chip').forEach(b=>b.onclick=()=>{dur=+b.dataset.d;buildEditor()});
+ const fr=people.filter(i=>i!==(me&&me.id));
+ $('#tolist').innerHTML=fr.length?fr.map(id=>`<button class="chip ${sel.has(id)?'on':''}" data-id="${id}">${esc(nm(id))}</button>`).join(''):'<span style="color:#fff">Nog geen vrienden om naar te sturen.</span>';
+ $$('#tolist .chip').forEach(b=>b.onclick=()=>{sel.has(b.dataset.id)?sel.delete(b.dataset.id):sel.add(b.dataset.id);buildEditor()})}
+$('#ecancel').onclick=()=>$('#editor').classList.remove('on');
+$('#send').onclick=async()=>{if(!sel.size){toast('Kies eerst een vriend');return}
+ const cap=$('#cap').value.trim();let ok=true;
+ for(const id of sel)ok=(await put({type:'snap',to:id,img:pending,cap,dur,opened:false}))&&ok;
+ if(ok){toast('Snap verzonden');$('#editor').classList.remove('on');show('chats')}};
+
+async function init(){
+ if(!window.claude){$('#notice').textContent='Open Blik via claude.ai om met vrienden te kunnen sturen.';return}
+ db=await claude.use('db');user=await claude.use('user');
+ if(!db||!user){$('#notice').textContent='Log in op claude.ai en open Blik via een uitnodiging om met vrienden te kunnen sturen.';return}
+ me=await user.me();
+ if(!me.id){$('#notice').textContent='Je hebt geen identiteit op deze pagina. Log in op claude.ai.';return}
+ prof[me.id]=me;ready=true;
+ try{await db.doc('people/'+me.id).set({t:Date.now()})}catch(e){toast('Je kunt meekijken maar niet versturen')}
+ db.collection('people').onSnapshot(async s=>{people=s.docs.map(d=>d.id);const ps=await user.profiles(people);people.forEach(id=>{if(ps[id])prof[id]={...ps[id],name:ps[id].name||'Vriend'}});render()});
+ const t0=Date.now();
+ db.collection('items').orderBy('ts','desc').limit(300).onSnapshot(s=>{
+  items=s.docs.map(d=>({id:d.id,...d.data()})).reverse();
+  s.docChanges().forEach(c=>{const m=c.doc.data();if(c.type==='added'&&m.to===me.id&&!m.opened&&m.ts>t0&&cur!==m.from)toast('Nieuw bericht van '+nm(m.from))});render()},()=>{$('#notice').textContent='Berichten laden mislukt.'});
+}
+init();
+</script>
+</body>
+</html>
